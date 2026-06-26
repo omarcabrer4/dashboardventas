@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Comercial</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f5f6fa;--bg2:#fff;--bg3:#f0f1f5;
+  --navy:#1a2342;--navy2:#243054;
+  --blue:#3b6de0;--blue2:#5b8af0;--blue-bg:rgba(59,109,224,.08);
+  --green:#16a34a;--green-bg:rgba(22,163,74,.08);
+  --yellow:#d97706;--yellow-bg:rgba(217,119,6,.08);
+  --red:#dc2626;--red-bg:rgba(220,38,38,.08);
+  --text:#1a2342;--text2:#5a6178;--text3:#8b90a4;
+  --border:#e5e7ee;
+  --font:'Plus Jakarta Sans',system-ui,sans-serif;
+  --mono:'JetBrains Mono',monospace;
+  --shadow:0 1px 3px rgba(26,35,66,.06);
+  --shadow-md:0 4px 16px rgba(26,35,66,.10);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;min-height:100vh}
+
+/* TOPBAR */
+.topbar{position:fixed;top:0;left:0;right:0;height:56px;background:var(--navy);display:flex;align-items:center;padding:0 24px;z-index:100;gap:16px}
+.logo{font-size:13px;font-weight:700;letter-spacing:.12em;color:#fff;text-transform:uppercase;white-space:nowrap}
+.logo span{color:var(--blue2)}
+.topbar-center{flex:1;display:flex;align-items:center;justify-content:center;gap:8px}
+.topbar-title{font-size:13px;font-weight:600;color:rgba(255,255,255,.7);letter-spacing:.04em}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:10px;flex-shrink:0}
+.week-sel{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.25);border-radius:8px;padding:6px 10px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;outline:none;max-width:160px}
+.week-sel option{background:#1a2342;color:#fff}
+.live-dot{width:7px;height:7px;border-radius:50%;background:#34d399;animation:pulse 2s infinite;flex-shrink:0}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.refresh-btn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);color:#fff;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:11px;font-family:var(--font);white-space:nowrap}
+#statusMsg{font-size:11px;color:rgba(255,255,255,.5);white-space:nowrap}
+
+/* CONTENT */
+.content{padding:72px 20px 40px;max-width:1400px;margin:0 auto}
+
+/* SECTION LABELS */
+.section-label{font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--text3);text-transform:uppercase;margin:24px 0 12px;display:flex;align-items:center;gap:8px}
+.section-label::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* SCORE BANNER — ¿Vamos ganando? */
+.score-banner{background:var(--navy);border-radius:14px;padding:20px 24px;display:flex;align-items:center;gap:20px;margin-bottom:8px;box-shadow:var(--shadow-md)}
+.score-result{display:flex;align-items:center;gap:16px;flex-shrink:0}
+.score-emoji{font-size:36px;line-height:1}
+.score-label{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:2px}
+.score-text{font-size:22px;font-weight:800;color:#fff}
+.score-sub{font-size:11px;color:rgba(255,255,255,.45);margin-top:2px}
+.score-divider{width:1px;height:48px;background:rgba(255,255,255,.12);flex-shrink:0}
+.score-kpis{display:flex;gap:20px;flex:1;flex-wrap:wrap}
+.score-kpi{display:flex;flex-direction:column;gap:2px}
+.score-kpi-name{font-size:10px;color:rgba(255,255,255,.45);font-weight:600;letter-spacing:.04em}
+.score-kpi-val{font-size:16px;font-weight:800;color:#fff;font-family:var(--mono)}
+.score-kpi-dot{width:6px;height:6px;border-radius:50%;display:inline-block;margin-right:4px}
+.dot-green{background:#34d399}.dot-yellow{background:#fbbf24}.dot-red{background:#f87171}
+
+/* SEMÁFORO CARDS */
+.sem-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+@media(max-width:900px){.sem-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:560px){.sem-grid{grid-template-columns:repeat(2,1fr)}}
+.sem-card{background:var(--bg2);border-radius:12px;border:1px solid var(--border);padding:16px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.sem-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0}
+.sem-card.green::before{background:var(--green)}
+.sem-card.yellow::before{background:var(--yellow)}
+.sem-card.red::before{background:var(--red)}
+.sem-card.neutral::before{background:var(--border)}
+.sem-name{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.04em;margin-bottom:8px}
+.sem-value{font-size:26px;font-weight:800;color:var(--navy);line-height:1;font-family:var(--mono)}
+.sem-target{font-size:11px;color:var(--text3);margin-top:5px}
+.sem-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;margin-top:6px}
+.sem-badge.green{background:var(--green-bg);color:var(--green)}
+.sem-badge.yellow{background:var(--yellow-bg);color:var(--yellow)}
+.sem-badge.red{background:var(--red-bg);color:var(--red)}
+.sem-badge.neutral{background:var(--bg3);color:var(--text3)}
+
+/* PERSONAS */
+.personas-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+@media(max-width:1000px){.personas-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.personas-grid{grid-template-columns:1fr}}
+.persona-card{background:var(--bg2);border-radius:14px;border:1px solid var(--border);overflow:hidden;box-shadow:var(--shadow)}
+.persona-header{padding:14px 18px 12px;display:flex;align-items:center;gap:12px}
+.persona-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;flex-shrink:0}
+.av-luis{background:linear-gradient(135deg,#3b6de0,#243054)}
+.av-andrea{background:linear-gradient(135deg,#16a34a,#064e2e)}
+.av-fatima{background:linear-gradient(135deg,#d97706,#7c2d12)}
+.av-valeria{background:linear-gradient(135deg,#7c3aed,#1e1b4b)}
+.persona-name{font-size:14px;font-weight:700;color:var(--navy)}
+.persona-role{font-size:11px;color:var(--text3);margin-top:1px}
+.persona-score{margin-left:auto;text-align:right}
+.persona-score-val{font-size:18px;font-weight:800;font-family:var(--mono)}
+.persona-score-lbl{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em}
+.persona-metrics{padding:0 18px 16px;display:flex;flex-direction:column;gap:0}
+.metric-row{display:flex;align-items:center;padding:9px 0;border-bottom:1px solid var(--border)}
+.metric-row:last-child{border-bottom:none}
+.metric-name{font-size:11.5px;color:var(--text2);flex:1;line-height:1.3}
+.metric-val{font-size:13px;font-weight:700;color:var(--navy);font-family:var(--mono);margin-right:8px;white-space:nowrap}
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.dot.green{background:var(--green)}.dot.yellow{background:var(--yellow)}.dot.red{background:var(--red)}.dot.neutral{background:var(--border)}
+.pbar-wrap{margin-top:4px;width:100%}
+.pbar{height:5px;border-radius:3px;background:var(--bg3);overflow:hidden;width:100%}
+.pbar-fill{height:100%;border-radius:3px;transition:width .8s ease}
+.pbar-fill.green{background:var(--green)}.pbar-fill.yellow{background:var(--yellow)}.pbar-fill.red{background:var(--red)}.pbar-fill.blue{background:var(--blue)}
+
+/* ALERTAS */
+.alerts-grid{display:flex;flex-direction:column;gap:8px}
+.alert-row{display:flex;align-items:flex-start;gap:12px;background:var(--bg2);border-radius:10px;border:1px solid var(--border);padding:12px 16px;box-shadow:var(--shadow)}
+.alert-icon{font-size:18px;flex-shrink:0;margin-top:1px}
+.alert-body{}
+.alert-title{font-size:12.5px;font-weight:700;color:var(--navy);margin-bottom:2px}
+.alert-desc{font-size:11.5px;color:var(--text2);line-height:1.5}
+.alert-row.ok{border-left:3px solid var(--green)}
+.alert-row.warn{border-left:3px solid var(--yellow)}
+.alert-row.crit{border-left:3px solid var(--red)}
+
+/* ESTADO */
+.no-data{text-align:center;padding:60px 20px;color:var(--text3);font-size:13px}
+.loading-state{text-align:center;padding:40px;color:var(--text3);font-size:13px}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  
+  <div class="topbar-center">
+    <span class="topbar-title">Dashboard Comercial</span>
+  </div>
+  <div class="topbar-right">
+    <select id="weekSel" class="week-sel" onchange="render()"><option>Cargando...</option></select>
+    <div class="live-dot"></div>
+    <span id="statusMsg">Conectando...</span>
+    <button class="refresh-btn" onclick="loadData()">↻ Actualizar</button>
+  </div>
+</div>
+
+<div class="content" id="main">
+  <div class="loading-state" id="loader">⏳ Cargando datos desde Google Sheets...</div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════════════════════
+const SHEET_ID   = '1RWYBFxyVQAmgyTp0e13k5VPJbVMmNttD9s-29z17HhA';
+const SHEET_TAB  = 'LS_Comercial_VSL';
+
+// Targets semanales
+const T = {
+  showUp:      0.70,   // 70%
+  conversion:  0.30,   // 30%
+  pitches:     0.80,   // 80%
+  calificadas: 0.20,   // 20%
+  roasCaja:    3.0,
+  roasVol:     4.0,
+  roasCash:    3.5,
+  cac:         500,    // USD
+  ticket:      1500,   // USD
+  pctCaja:     0.40,   // 40%
+  inbound:     300,    // semanal (60/día × 5)
+  followups:   750,    // semanal (150/día × 5)
+};
+
+// Índices de columnas en LS (0-based, col A=0)
+const C = {
+  mes:0, semana:1, fecha:2,
+  invMXN:3, invUSD:4,
+  agReal:5, agLlamada:6, sesCal:7,
+  confHoy:8, showUps:9, pctShowUp:10,
+  ofertas:11, pctPitches:12,
+  cierresTotal:13, cierresFocus:14, cierresSistPerf:15,
+  cierresAcc:16, cierresDown:17, pctConv:18,
+  ventaVol:19, ventaCaja:20, cashCol:21, ingTot:22,
+  pctCaja:23, cac:24, ticket:25,
+  roasVol:26, roasCaja:27, roasCash:28
+};
+
+// ══════════════════════════════════════════════════════
+// ESTADO GLOBAL
+// ══════════════════════════════════════════════════════
+let allRows = [];
+
+// ══════════════════════════════════════════════════════
+// CARGA JSONP
+// ══════════════════════════════════════════════════════
+function loadData() {
+  document.getElementById('statusMsg').textContent = 'Actualizando...';
+  const cb = 'cb_' + Date.now();
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&callback=${cb}&sheet=${encodeURIComponent(SHEET_TAB)}`;
+  const script = document.createElement('script');
+  script.src = url;
+
+  window[cb] = function(data) {
+    delete window[cb];
+    script.remove();
+    try {
+      const rows = data.table.rows;
+      allRows = [];
+      // Saltar fila 0 (header)
+      for (let i = 1; i < rows.length; i++) {
+        const r = rows[i].c;
+        if (!r || !r[0]) continue;
+        const row = r.map(cell => {
+          if (!cell) return null;
+          const v = cell.v;
+          // Fechas de Google vienen como string "Date(año,mes,día)"
+          if (typeof v === 'string' && v.startsWith('Date(')) return v;
+          return v;
+        });
+        allRows.push(row);
+      }
+      populateWeekSelector();
+      render();
+      document.getElementById('statusMsg').textContent = 'Actualizado · ' + new Date().toLocaleTimeString('es-MX', {hour:'2-digit',minute:'2-digit'});
+    } catch(e) {
+      document.getElementById('statusMsg').textContent = 'Error al cargar';
+      document.getElementById('main').innerHTML = `<div class="no-data">⚠️ No se pudo conectar con Google Sheets.<br><small>Verifica que la hoja esté publicada y el nombre de pestaña sea exactamente: <b>${SHEET_TAB}</b></small></div>`;
+    }
+  };
+
+  script.onerror = function() {
+    document.getElementById('statusMsg').textContent = 'Sin conexión';
+    document.getElementById('main').innerHTML = `<div class="no-data">⚠️ No se pudo conectar.<br><small>Revisa tu conexión o que la hoja esté compartida públicamente.</small></div>`;
+  };
+
+  document.body.appendChild(script);
+}
+
+// ══════════════════════════════════════════════════════
+// SELECTOR DE SEMANA
+// ══════════════════════════════════════════════════════
+function populateWeekSelector() {
+  const sel = document.getElementById('weekSel');
+  sel.innerHTML = '';
+  // Agregar todas las semanas disponibles en orden inverso (más reciente primero)
+  const opts = [];
+  allRows.forEach((row, idx) => {
+    const mes = row[C.mes] || '';
+    const sem = row[C.semana] || '';
+    if (mes && sem) opts.push({ label: `${sem} · ${mes}`, idx });
+  });
+  opts.reverse().forEach(o => {
+    const opt = document.createElement('option');
+    opt.value = o.idx;
+    opt.textContent = o.label;
+    sel.appendChild(opt);
+  });
+  // Seleccionar la semana más reciente con datos
+  for (let i = opts.length - 1; i >= 0; i--) {
+    const row = allRows[opts[i].idx];
+    const hasData = row[C.invMXN] || row[C.showUps] || row[C.cierresTotal];
+    if (hasData) {
+      sel.value = opts[i].idx;
+      break;
+    }
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════════════
+const n   = v => (v == null || isNaN(v)) ? null : Number(v);
+const pct = v => v != null ? (v * 100).toFixed(1) + '%' : '—';
+const usd = v => v != null ? '$' + v.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '—';
+const mxn = v => v != null ? '$' + v.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' MXN' : '—';
+const num = v => v != null ? v.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '—';
+const fx  = v => v != null ? v.toFixed(2) + 'x' : '—';
+
+function semColor(val, target, higherBetter = true, warnPct = 0.80) {
+  if (val == null || target == null) return 'neutral';
+  const ratio = val / target;
+  if (higherBetter) {
+    if (ratio >= 1)              return 'green';
+    if (ratio >= warnPct)        return 'yellow';
+    return 'red';
+  } else {
+    // lower is better (e.g. CAC)
+    if (ratio <= 1)              return 'green';
+    if (ratio <= 1 / warnPct)   return 'yellow';
+    return 'red';
+  }
+}
+
+function colorClass(col, higherBetter = true) {
+  const map = { green: 'var(--green)', yellow: 'var(--yellow)', red: 'var(--red)', neutral: 'var(--text3)' };
+  return map[col] || map.neutral;
+}
+
+function semBadge(val, target, higherBetter = true, label = null) {
+  const c = semColor(val, target, higherBetter);
+  const labels = { green: '● En meta', yellow: '▲ Cerca', red: '✕ Bajo meta', neutral: '— Sin datos' };
+  return `<span class="sem-badge ${c}">${label || labels[c]}</span>`;
+}
+
+function dotHtml(col) {
+  return `<span class="dot ${col}"></span>`;
+}
+
+function pbarHtml(val, target, higherBetter = true) {
+  const c = semColor(val, target, higherBetter);
+  const pct = higherBetter
+    ? Math.min(100, (val / target) * 100)
+    : Math.min(100, (target / val) * 100);
+  return `<div class="pbar-wrap"><div class="pbar"><div class="pbar-fill ${c}" style="width:${pct}%"></div></div></div>`;
+}
+
+function scoreGlobal(row) {
+  const checks = [
+    semColor(n(row[C.pctShowUp]),  T.showUp)    === 'green',
+    semColor(n(row[C.pctConv]),    T.conversion) === 'green',
+    semColor(n(row[C.roasCaja]),   T.roasCaja)   === 'green',
+    semColor(n(row[C.pctPitches]), T.pitches)    === 'green',
+    semColor(n(row[C.cac]),        T.cac, false) === 'green',
+  ];
+  const score = checks.filter(Boolean).length;
+  if (score >= 4) return { emoji: '🟢', text: 'Vamos ganando', sub: `${score}/5 KPIs en meta`, color: 'var(--green)' };
+  if (score >= 2) return { emoji: '🟡', text: 'En proceso', sub: `${score}/5 KPIs en meta`, color: 'var(--yellow)' };
+  return { emoji: '🔴', text: 'Atención requerida', sub: `${score}/5 KPIs en meta`, color: 'var(--red)' };
+}
+
+// ══════════════════════════════════════════════════════
+// ALERTAS MICRO — diagnóstico automático del embudo
+// ══════════════════════════════════════════════════════
+function buildAlerts(row) {
+  const alerts = [];
+
+  const showUp   = n(row[C.pctShowUp]);
+  const pitches  = n(row[C.pctPitches]);
+  const conv     = n(row[C.pctConv]);
+  const pctCaja  = n(row[C.pctCaja]);
+  const roasCaja = n(row[C.roasCaja]);
+  const cac      = n(row[C.cac]);
+  const calPct   = row[C.agLlamada] ? n(row[C.sesCal]) / n(row[C.agLlamada]) : null;
+  const agReal   = n(row[C.agReal]);
+  const invUSD   = n(row[C.invUSD]);
+  const cierres  = n(row[C.cierresTotal]);
+  const cashCol  = n(row[C.cashCol]);
+  const ingTot   = n(row[C.ingTot]);
+  const ventaVol = n(row[C.ventaVol]);
+
+  // ─ Show Up
+  if (showUp != null && showUp < 0.50)
+    alerts.push({ sev: 'crit', icon: '📵', title: 'Show Up Rate crítico', desc: `Solo ${pct(showUp)} de las sesiones confirmadas llegaron. Revisar inmediatamente el proceso de confirmación y recordatorios de Fatima.` });
+  else if (showUp != null && showUp < T.showUp)
+    alerts.push({ sev: 'warn', icon: '⏰', title: 'Show Up Rate bajo meta', desc: `${pct(showUp)} vs target ${pct(T.showUp)}. Considerar agregar un recordatorio adicional 1 hora antes de cada sesión.` });
+
+  // ─ Pitches
+  if (pitches != null && pitches < 0.60)
+    alerts.push({ sev: 'crit', icon: '🎯', title: 'Pocas llamadas llegan al pitch', desc: `Solo ${pct(pitches)} de los show ups recibieron oferta. Las llamadas se están cortando antes del cierre. Revisar el script de Valeria.` });
+  else if (pitches != null && pitches < T.pitches)
+    alerts.push({ sev: 'warn', icon: '🎯', title: '% Pitches por debajo del target', desc: `${pct(pitches)} vs target ${pct(T.pitches)}. Algunas llamadas no llegan a la presentación de oferta.` });
+
+  // ─ Conversión
+  if (conv != null && conv < 0.15)
+    alerts.push({ sev: 'crit', icon: '📉', title: 'Conversión crítica esta semana', desc: `Solo ${pct(conv)} de cierre. Revisar objeciones más frecuentes en el Registro de Llamadas Setter y ajustar argumentario.` });
+  else if (conv != null && conv < T.conversion)
+    alerts.push({ sev: 'warn', icon: '📊', title: 'Conversión por debajo del target', desc: `${pct(conv)} vs target ${pct(T.conversion)}. Evaluar si el perfil de leads que llega al closer es el correcto.` });
+
+  // ─ Calificación
+  if (calPct != null && calPct < 0.15)
+    alerts.push({ sev: 'crit', icon: '🔍', title: 'Pipeline muy poco calificado', desc: `Solo ${pct(calPct)} de las sesiones son empresas de 21+ colaboradores. Revisar criterios de calificación con Fatima.` });
+  else if (calPct != null && calPct < T.calificadas)
+    alerts.push({ sev: 'warn', icon: '🔍', title: 'Calidad de pipeline baja', desc: `${pct(calPct)} de sesiones calificadas. El ideal es 20–50%. Muchos leads pueden ser no aptos para el programa.` });
+
+  // ─ ROAS
+  if (roasCaja != null && invUSD && roasCaja < 1.0)
+    alerts.push({ sev: 'crit', icon: '💸', title: 'ROAS Caja menor a 1x', desc: `Se está gastando más en ads de lo que entró en caja. Inversión: ${usd(invUSD)} vs Caja: ${usd(n(row[C.ventaCaja]))}. Pausar y revisar.` });
+  else if (roasCaja != null && roasCaja < T.roasCaja)
+    alerts.push({ sev: 'warn', icon: '📈', title: 'ROAS Caja bajo meta', desc: `${fx(roasCaja)} vs target ${T.roasCaja}x. Considerar mejorar el ticket promedio o reducir inversión no rentable.` });
+
+  // ─ CAC
+  if (cac != null && cac > T.cac * 2)
+    alerts.push({ sev: 'crit', icon: '💰', title: 'CAC muy elevado', desc: `Costo de adquisición en ${usd(cac)} — más del doble del target (${usd(T.cac)}). Revisar calidad de leads y conversión simultáneamente.` });
+  else if (cac != null && cac > T.cac)
+    alerts.push({ sev: 'warn', icon: '💰', title: 'CAC sobre el target', desc: `${usd(cac)} vs target ${usd(T.cac)}. Puede mejorar con más cierres o reduciendo inversión.` });
+
+  // ─ % Venta en caja
+  if (pctCaja != null && pctCaja < 0.20)
+    alerts.push({ sev: 'warn', icon: '🏦', title: '% Caja muy bajo', desc: `Solo ${pct(pctCaja)} del volumen contratado entró en caja. Revisar estructuración de pagos — se están cerrando con demasiadas cuotas.` });
+
+  // ─ Cash Collected vs pipeline
+  if (cashCol != null && cashCol === 0 && cierres && cierres > 0)
+    alerts.push({ sev: 'warn', icon: '🔄', title: 'Sin Cash Collected esta semana', desc: `Hay cierres registrados pero sin cobro de cuotas anteriores. Verificar cobranza de contratos de semanas pasadas.` });
+
+  // ─ Sin alertas críticas
+  if (alerts.filter(a => a.sev === 'crit').length === 0 && alerts.filter(a => a.sev === 'warn').length === 0)
+    alerts.push({ sev: 'ok', icon: '✅', title: 'Sistema funcionando dentro de parámetros', desc: 'Todos los indicadores clave están dentro o cerca de los targets esta semana. Mantener ritmo.' });
+
+  return alerts;
+}
+
+// ══════════════════════════════════════════════════════
+// RENDER PRINCIPAL
+// ══════════════════════════════════════════════════════
+function render() {
+  const sel = document.getElementById('weekSel');
+  const idx = parseInt(sel.value);
+  const row = allRows[idx];
+  if (!row) { document.getElementById('main').innerHTML = '<div class="no-data">Sin datos para esta semana.</div>'; return; }
+
+  const mes  = row[C.mes]    || '—';
+  const sem  = row[C.semana] || '—';
+
+  // Valores
+  const invMXN   = n(row[C.invMXN]);
+  const invUSD   = n(row[C.invUSD]);
+  const agReal   = n(row[C.agReal]);
+  const agLlamada= n(row[C.agLlamada]);
+  const sesCal   = n(row[C.sesCal]);
+  const confHoy  = n(row[C.confHoy]);
+  const showUps  = n(row[C.showUps]);
+  const pShowUp  = n(row[C.pctShowUp]);
+  const ofertas  = n(row[C.ofertas]);
+  const pPitches = n(row[C.pctPitches]);
+  const cierres  = n(row[C.cierresTotal]);
+  const cFocus   = n(row[C.cierresFocus]);
+  const cSistP   = n(row[C.cierresSistPerf]);
+  const cAcc     = n(row[C.cierresAcc]);
+  const cDown    = n(row[C.cierresDown]);
+  const pConv    = n(row[C.pctConv]);
+  const ventaVol = n(row[C.ventaVol]);
+  const ventaCaja= n(row[C.ventaCaja]);
+  const cashCol  = n(row[C.cashCol]);
+  const ingTot   = n(row[C.ingTot]);
+  const pCaja    = n(row[C.pctCaja]);
+  const cacVal   = n(row[C.cac]);
+  const ticketV  = n(row[C.ticket]);
+  const roasVol  = n(row[C.roasVol]);
+  const roasCaja = n(row[C.roasCaja]);
+  const roasCash = n(row[C.roasCash]);
+
+  const calPct = agLlamada ? sesCal / agLlamada : null;
+  const score  = scoreGlobal(row);
+  const alerts = buildAlerts(row);
+
+  // ─── HTML
+  let html = '';
+
+  // ── BANNER SCORE
+  html += `
+  <div class="score-banner">
+    <div class="score-result">
+      <div class="score-emoji">${score.emoji}</div>
+      <div>
+        <div class="score-label">Estado de la semana</div>
+        <div class="score-text">${score.text}</div>
+        <div class="score-sub">${sem} · ${mes} · ${score.sub}</div>
+      </div>
+    </div>
+    <div class="score-divider"></div>
+    <div class="score-kpis">
+      ${kpiMini('ROAS Caja', fx(roasCaja), semColor(roasCaja, T.roasCaja))}
+      ${kpiMini('Show Up', pct(pShowUp), semColor(pShowUp, T.showUp))}
+      ${kpiMini('Conversión', pct(pConv), semColor(pConv, T.conversion))}
+      ${kpiMini('CAC', usd(cacVal), semColor(cacVal, T.cac, false))}
+      ${kpiMini('Cash In', usd(ingTot), ingTot && invUSD ? semColor(ingTot, invUSD) : 'neutral')}
+    </div>
+  </div>`;
+
+  // ── SEMÁFOROS
+  html += `<div class="section-label">Semáforo semanal</div>
+  <div class="sem-grid">
+    ${semCard('Show Up Rate', pct(pShowUp), `Target ${pct(T.showUp)}`, pShowUp, T.showUp)}
+    ${semCard('% Conversión', pct(pConv), `Target ${pct(T.conversion)}`, pConv, T.conversion)}
+    ${semCard('ROAS Caja', fx(roasCaja), `Target ${T.roasCaja}x`, roasCaja, T.roasCaja)}
+    ${semCard('CAC', usd(cacVal), `Target < ${usd(T.cac)}`, cacVal, T.cac, false)}
+    ${semCard('% Venta Caja', pct(pCaja), `Target ${pct(T.pctCaja)}`, pCaja, T.pctCaja)}
+  </div>`;
+
+  // ── PERSONAS
+  html += `<div class="section-label">Por persona</div>
+  <div class="personas-grid">`;
+
+  // LUIS — Tráfico
+  html += personaCard('Luis', 'Tráfico & Ads', 'L', 'av-luis', invUSD, [
+    metricRow('Inversión VSL',      mxn(invMXN),   null,     null,       null),
+    metricRow('Inversión USD',      usd(invUSD),   null,     null,       null),
+    metricRow('Ag. Pagadas REAL',   num(agReal),   null,     null,       null),
+    metricRow('Costo por Agenda',   usd(invUSD && agReal ? invUSD/agReal : null), T.cac*0.3, invUSD && agReal ? invUSD/agReal : null, false),
+    metricRow('ROAS Volumen',       fx(roasVol),   T.roasVol, roasVol,   true),
+    metricRow('ROAS Caja',          fx(roasCaja),  T.roasCaja,roasCaja,  true),
+  ]);
+
+  // ANDREA — Marketing
+  html += personaCard('Andrea', 'Marketing', 'A', 'av-andrea', null, [
+    metricRow('Mensajes Inbound',  num(null),   T.inbound,  null,  true, '(desde reporte diario)'),
+    metricRow('Followups',         num(null),   T.followups,null,  true, '(desde reporte diario)'),
+    metricRow('Ag. desde Mkt',     num(null),   null,       null,  null, '(desde reporte diario)'),
+  ], true);
+
+  // FATIMA — Setter
+  html += personaCard('Fatima', 'Setter', 'F', 'av-fatima', pShowUp, [
+    metricRow('Ag. Llamada',        num(agLlamada),  null,         null,    null),
+    metricRow('Sesiones Calificadas',num(sesCal),   null,          null,    null),
+    metricRow('% Calificadas',      pct(calPct),    T.calificadas, calPct,  true),
+    metricRow('Confirmadas HOY',    num(confHoy),   null,          null,    null),
+    metricRow('Show Ups',           num(showUps),   null,          null,    null),
+    metricRow('% Show Up Rate',     pct(pShowUp),   T.showUp,      pShowUp, true),
+  ]);
+
+  // VALERIA — Closer
+  html += personaCard('Valeria', 'Closer', 'V', 'av-valeria', pConv, [
+    metricRow('Ofertas presentadas', num(ofertas),  null,        null,    null),
+    metricRow('% Pitches',          pct(pPitches), T.pitches,   pPitches,true),
+    metricRow('Cierres Totales',    num(cierres),  null,        null,    null),
+    metricRow('% Conversión',       pct(pConv),    T.conversion,pConv,   true),
+    metricRow('Venta Volumen',      usd(ventaVol), null,        null,    null),
+    metricRow('Venta Caja',         usd(ventaCaja),null,        null,    null),
+    metricRow('Cash Collected',     usd(cashCol),  null,        null,    null),
+    metricRow('Ingresos Totales',   usd(ingTot),   null,        null,    null),
+    metricRow('Ticket Promedio',    usd(ticketV),  T.ticket,    ticketV, true),
+    metricRow('ROAS Cash',          fx(roasCash),  T.roasCash,  roasCash,true),
+  ]);
+
+  html += `</div>`;
+
+  // ── ALERTAS
+  html += `<div class="section-label">Diagnóstico micro del embudo</div>
+  <div class="alerts-grid">`;
+  for (const a of alerts) {
+    html += `<div class="alert-row ${a.sev}">
+      <div class="alert-icon">${a.icon}</div>
+      <div class="alert-body">
+        <div class="alert-title">${a.title}</div>
+        <div class="alert-desc">${a.desc}</div>
+      </div>
+    </div>`;
+  }
+  html += `</div>`;
+
+  document.getElementById('main').innerHTML = html;
+  document.getElementById('loader') && (document.getElementById('loader').style.display = 'none');
+}
+
+// ══════════════════════════════════════════════════════
+// HELPERS DE HTML
+// ══════════════════════════════════════════════════════
+function kpiMini(name, val, col) {
+  const dotMap = { green: 'dot-green', yellow: 'dot-yellow', red: 'dot-red', neutral: '' };
+  return `<div class="score-kpi">
+    <div class="score-kpi-name">${name}</div>
+    <div class="score-kpi-val"><span class="score-kpi-dot ${dotMap[col]}"></span>${val}</div>
+  </div>`;
+}
+
+function semCard(name, val, targetLabel, rawVal, target, higherBetter = true) {
+  const c = semColor(rawVal, target, higherBetter);
+  return `<div class="sem-card ${c}">
+    <div class="sem-name">${name}</div>
+    <div class="sem-value">${val}</div>
+    <div class="sem-target">${targetLabel}</div>
+    ${semBadge(rawVal, target, higherBetter)}
+    ${rawVal != null ? pbarHtml(rawVal, target, higherBetter) : ''}
+  </div>`;
+}
+
+function metricRow(name, val, target, rawVal, higherBetter, note = '') {
+  const c = (target != null && rawVal != null) ? semColor(rawVal, target, higherBetter) : 'neutral';
+  return `<div class="metric-row">
+    <div style="flex:1">
+      <div class="metric-name">${name}${note ? `<br><span style="font-size:10px;color:var(--text3)">${note}</span>` : ''}</div>
+      ${target != null && rawVal != null ? pbarHtml(rawVal, target, higherBetter) : ''}
+    </div>
+    <div class="metric-val" style="color:${colorClass(c)}">${val}</div>
+    ${dotHtml(c)}
+  </div>`;
+}
+
+function personaCard(name, role, initial, avatarClass, mainKpi, metrics, noData = false) {
+  const mainColor = mainKpi != null ? (mainKpi >= 0.70 ? 'var(--green)' : mainKpi >= 0.50 ? 'var(--yellow)' : 'var(--red)') : 'var(--text3)';
+  const mainLabel = mainKpi != null ? pct(mainKpi) : '—';
+  const mainMeta  = role === 'Tráfico & Ads' ? (mainKpi ? '' : '') : '';
+
+  return `<div class="persona-card">
+    <div class="persona-header">
+      <div class="persona-avatar ${avatarClass}">${initial}</div>
+      <div>
+        <div class="persona-name">${name}</div>
+        <div class="persona-role">${role}</div>
+      </div>
+    </div>
+    <div class="persona-metrics">
+      ${metrics.join('')}
+    </div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════
+loadData();
+</script>
+</body>
+</html>
